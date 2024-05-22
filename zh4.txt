@@ -1,0 +1,96 @@
+1. feladat
+
+SELECT v.NEV,
+       v.EMAIL,
+       v.USERNEV
+FROM Vendeg v JOIN Foglalas f ON v.USERNEV = f.UGYFEL_FK
+WHERE MONTH(v.SZUL_DAT) <> 5
+GROUP BY v.NEV, v.EMAIL, v.USERNEV
+HAVING COUNT(f.FOGLALAS_PK) > 1
+
+
+
+
+2. feladat
+
+SELECT szh1.SZALLAS_ID,
+       szh1.SZALLAS_NEV
+FROM Szallashely szh1
+WHERE CSILLAGOK_SZAMA = (
+    SELECT max(szh2.CSILLAGOK_SZAMA)
+    FROM Szallashely szh2
+    WHERE szh1.HELY = szh2.HELY
+)
+
+
+
+
+3. feladat
+
+SELECT
+    RANK() OVER (ORDER BY COUNT(f.FOGLALAS_PK) DESC) AS 'Sorszám',
+    v.NEV AS 'Név',
+    COUNT(f.FOGLALAS_PK) AS 'Foglalások száma'
+FROM Vendeg v JOIN Foglalas f ON v.USERNEV = f.UGYFEL_FK
+GROUP BY v.USERNEV, v.NEV
+ORDER BY 'Sorszám'
+
+
+
+
+4. feladat
+
+SELECT IIF(GROUPING_ID(szh.SZALLAS_NEV) = 1, 'Végösszeg', szh.SZALLAS_NEV) AS 'Szállás neve',
+       CASE
+            WHEN GROUPING_ID(sz.POTAGY) = 1 THEN 'Részösszeg'
+            WHEN GROUPING_ID(sz.POTAGY) = 3 THEN 'Végösszeg'
+            ELSE CAST(sz.POTAGY AS nvarchar(2))
+       END AS 'Pótágyak száma',
+       SUM(f.FELNOTT_SZAM + f.GYERMEK_SZAM) AS 'Fő'
+FROM Szallashely szh JOIN Szoba sz ON szh.SZALLAS_ID = SZALLAS_FK
+                     JOIN Foglalas f ON f.SZOBA_FK = sz.SZOBA_ID
+GROUP BY ROLLUP(szh.SZALLAS_NEV, sz.POTAGY)
+
+
+
+
+6. feladat
+
+HSET IRO:1 ID 1 nev "Petofi Sandor" nemzetiseg magyar
+
+HSET IRO:2 ID 2 nev "Jokai Mor" nemzetiseg magyar
+
+
+
+HSET KONYV:1:1 ID 1 cim gazdasaginformatika mufaj szakkönyv iro "Petofi Sandor" (integer) 0
+
+HSET KONYV:2:2 ID 2 cim "ZH Puska" mufaj "elsosegely konyv" iro "Jokai Mor" (integer) 4
+
+
+
+
+7. feladat
+
+create table STUDENT
+
+          ... (
+
+          ... ID int,
+
+          ... Nev text,
+
+          ... Teljesitett_felevek list<int>,
+
+          ... Eredmenyek MAP<int, float>,
+
+          ... Nyelvtudas SET<text>,
+
+          ... PRIMARY KEY (ID)
+
+          ... );
+
+
+
+insert into STUDENT(ID, Nev, Teljesitett_felevek, Eredmenyek, Nyelvtudas) VALUES (1, 'Kiss Bela', [1, 2], {1: 4.3, 2: 4.2}, {'angol', 'nemet','francia'});
+
+insert into STUDENT(ID, Nev, Teljesitett_felevek, Eredmenyek, Nyelvtudas) VALUES (2, 'Takacs Reka', [1, 2, 3, 4], {1: 3.2, 2: 4.0, 3: 4.5, 4: 4.8}, {'orosz', 'nemet'});
